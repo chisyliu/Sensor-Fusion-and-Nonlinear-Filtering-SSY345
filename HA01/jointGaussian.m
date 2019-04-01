@@ -1,6 +1,11 @@
 function [mu, Sigma] = jointGaussian(mu_x, sigma2_x, sigma2_r)
-    %jointGaussian calculates the joint Gaussian density as defined
-    %in problem 1.3a. 
+    %jointGaussian calculates the joint Gaussian density p([y;x])
+    %
+    % y = x + r
+    %               x ~ N(mu_x,sigma2_x)
+    %               r ~ N(0   ,sigma2_r)
+    %
+    %  =>  p([y;x]) = p(A*[x;r] + b)
     %
     %Input
     %   MU_X        Expected value of x
@@ -10,7 +15,6 @@ function [mu, Sigma] = jointGaussian(mu_x, sigma2_x, sigma2_r)
     %Output
     %   MU          Mean of joint density 
     %   SIGMA       Covariance of joint density
-
 
     % define linear transformations matrices [x;y] = A*[x;r] + b according to
     % problem 1.3a
