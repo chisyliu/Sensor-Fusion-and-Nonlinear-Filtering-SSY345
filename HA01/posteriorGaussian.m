@@ -1,14 +1,16 @@
 function [mu, sigma2] = posteriorGaussian(mu_x, sigma2_x, y, sigma2_r)
-    %posteriorGaussian performs a single scalar measurement update with a
-    %measurement model which is simply "y = x + noise".
+    % Calculates the posterior p(x|y) which is proportional to p(x,y)
     %
-    %Input
+    % posteriorGaussian performs a single scalar measurement update with a
+    % measurement model which is simply "y = x + noise".
+    %
+    % Input
     %   MU_X            The mean of the (Gaussian) prior density.
     %   SIGMA2_X        The variance of the (Gaussian) prior density.
     %   SIGMA2_R        The variance of the measurement noise.
     %   Y               The given measurement.
     %
-    %Output
+    % Output
     %   MU              The mean of the (Gaussian) posterior distribution
     %   SIGMA2          The variance of the (Gaussian) posterior distribution
 

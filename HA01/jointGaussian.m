@@ -1,18 +1,18 @@
 function [mu, Sigma] = jointGaussian(mu_x, sigma2_x, sigma2_r)
-    %jointGaussian calculates the joint Gaussian density p([y;x])
+    % JointGaussian calculates the joint Gaussian density p([y;x])
     %
     % y = x + r
     %               x ~ N(mu_x,sigma2_x)
     %               r ~ N(0   ,sigma2_r)
     %
-    %  =>  p([y;x]) = p(A*[x;r] + b)
+    %  =>  p([y;x]) = p(A*[x;r] + b) = p( [1 0; 1 1]*[x;r] + [0;0] )
     %
-    %Input
+    % Input
     %   MU_X        Expected value of x
     %   SIGMA2_X    Covariance of x
     %   SIGMA2_R    Covariance of the noise r
     %
-    %Output
+    % Output
     %   MU          Mean of joint density 
     %   SIGMA       Covariance of joint density
 
