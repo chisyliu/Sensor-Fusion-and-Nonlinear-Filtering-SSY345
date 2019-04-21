@@ -19,10 +19,10 @@ function [fx, Fx] = coordinatedTurnMotion(x, T)
     %   omega       turn-rate
 
     fx = [x(1) + T*x(3)*cos(x(4));
-              x(2) + T*x(3)*sin(x(4));
-              x(3);
-              x(4) + T*x(5);
-              x(5)];
+          x(2) + T*x(3)*sin(x(4));
+          x(3);
+          x(4) + T*x(5);
+          x(5)];
 
     % Check if the Jacobian is requested by the calling function
     if nargout > 1

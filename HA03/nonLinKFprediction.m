@@ -22,7 +22,7 @@ function [x, P] = nonLinKFprediction(x, P, f, Q, type)
     n = size(x,1);
     switch type
         case 'EKF'
-            % calculate f(x)  and jacobian(f(x),x)
+            % calculate f(x) and jacobian(f(x),x)
             [fx, dfx] = f(x);
             % predict using first order Taylor expansion
             x = fx;
