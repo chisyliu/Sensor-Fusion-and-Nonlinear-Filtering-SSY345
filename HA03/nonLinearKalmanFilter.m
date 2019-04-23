@@ -22,7 +22,6 @@ function [xf, Pf, xp, Pp] = nonLinearKalmanFilter(Y, x_0, P_0, f, Q, h, R, type)
     %   Pf          [n x n x N] Filter error convariance
     %   xp          [n x N]     Predicted estimates for times 1,...,N
     %   Pp          [n x n x N] Filter error convariance
-    %
 
     %% Parameters
     N = size(Y,2);

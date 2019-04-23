@@ -18,72 +18,47 @@ function [x, P] = nonLinKFupdate(x, P, y, h, R, type)
     % Output:
     %   x           [n x 1] updated state mean
     %   P           [n x n] updated state covariance
-    %
     
     n = size(x,1);
-    switch type
-        case 'EKF'
-            % calculate h(x) and jacobian(h(x),x)
-            [hx, dhx] = h(x);
-            % calculate inovation covariance and kalman gain
-            S = dhx * P * dhx' + R;
-            K = P * dhx' / S;
-            % update
-            x = x + K * ( y - hx );
-            P = P - K * S * K';
-            
-        case 'UKF'
-            % compute sigma points
-            [SP,W] = sigmaPoints(x, P, type);
-            
-            % estimate desired moments
-            yhat = 0*y;
-            for i=1:2*n+1
-                yhat = yhat + h(SP(:,i)) * W(i);
-            end
-            Pxy = 0*x*y';
-            for i=1:2*n+1
-                Pxy = Pxy + (SP(:,i)-x)*(h(SP(:,i))-yhat)' * W(i);
-            end
-            S = R;
-            for i=1:2*n+1
-                S = S + (h(SP(:,i))-yhat)*(h(SP(:,i))-yhat)' * W(i);
-            end
-            
-            % calculate updated mean and covariance
-            x = x + Pxy / S * ( y - yhat );
-            P = P - Pxy / S * Pxy';
-            
-            % Make sure the covariance matrix is semi-definite
-            if min(eig(P))<=0
-                [v,e] = eig(P, 'vector');
-                e(e<0) = 1e-4;
-                P = v*diag(e)/v;
-            end
-            
-        case 'CKF'
-            % compute sigma points
-            [SP,W] = sigmaPoints(x, P, type);
-            
-            % estimate desired moments
-            yhat = 0*y;
-            for i=1:2*n
-                yhat = yhat + h(SP(:,i)) * W(i);
-            end
-            Pxy = 0*x*y';
-            for i=1:2*n
-                Pxy = Pxy + (SP(:,i)-x)*(h(SP(:,i))-yhat).' * W(i);
-            end
-            S = R;
-            for i=1:2*n
-                S = S + (h(SP(:,i))-yhat)*(h(SP(:,i))-yhat).' * W(i);
-            end
-            
-            % calculate updated mean and covariance
-            x = x + Pxy / S * ( y - yhat );
-            P = P - Pxy / S * Pxy';
-            
-        otherwise
-            error('Incorrect type of non-linear Kalman filter')
+    
+    if strcmp(type,'EKF')
+        % calculate h(x) and jacobian(h(x),x)
+        [hx, dhx] = h(x);
+        % calculate inovation covariance and kalman gain
+        S = dhx * P * dhx' + R;
+        K = P * dhx' / S;
+        % update
+        x = x + K * ( y - hx );
+        P = P - K * S * K';   
+    elseif strcmp(type,'UKF') || strcmp(type,'CKF')
+        % compute sigma points
+        [SP,W] = sigmaPoints(x, P, type);
+
+        % estimate desired moments
+        yhat = 0*y;
+        for i=1:numel(W)
+            yhat = yhat + h(SP(:,i)) * W(i);
+        end
+        Pxy = 0*x*y';
+        for i=1:numel(W)
+            Pxy = Pxy + (SP(:,i)-x)*(h(SP(:,i))-yhat)' * W(i);
+        end
+        S = R;
+        for i=1:numel(W)
+            S = S + (h(SP(:,i))-yhat)*(h(SP(:,i))-yhat)' * W(i);
+        end
+
+        % calculate updated mean and covariance
+        x = x + Pxy / S * ( y - yhat );
+        P = P - Pxy / S * Pxy';
+
+        % Make sure the covariance matrix is semi-definite
+        if min(eig(P))<=0
+            [v,e] = eig(P, 'vector');
+            e(e<0) = 1e-4;
+            P = v*diag(e)/v;
+        end
+    else
+        error('Incorrect type of non-linear Kalman filter')
     end
 end

@@ -13,7 +13,6 @@ function Y = genNonLinearMeasurementSequence(X, h, R)
     %
     % Output:
     %   Y           [m x N] Measurement sequence
-    %
 
     m = size(R,1);
     % state sequence includes x0, which does not generate an observation

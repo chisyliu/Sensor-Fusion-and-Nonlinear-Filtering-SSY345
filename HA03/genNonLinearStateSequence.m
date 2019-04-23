@@ -16,7 +16,6 @@ function X = genNonLinearStateSequence(x_0, P_0, f, Q, N)
     %
     % Output:
     %   X           [n x N+1] State vector sequence
-    %
 
     n = length(x_0);
     X = zeros(n,N);
