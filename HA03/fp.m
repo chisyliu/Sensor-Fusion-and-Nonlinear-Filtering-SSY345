@@ -13,8 +13,8 @@ classdef fp
             defaultFormat  = 'epsc';
             expectedFormat = {'epsc','svg','png','jpg'};
             addParameter(p,'format',defaultFormat, @(x) any(validatestring(x,expectedFormat)));
-            addParameter(p,'fighandle',gcf, @(x) isa(a,'matlab.ui.Figure'));
-            addParameter(p,'folder',fullfile(pwd,'images'), @(x) isa(a,'char'));      
+            addParameter(p,'fighandle',gcf, @(x) isa(x,'matlab.ui.Figure'));
+            addParameter(p,'folder',fullfile(pwd,'images'), @(x) isa(x,'char'));      
             parse(p,varargin{:});
             
             if ~ exist(p.Results.folder,'dir'), mkdir(p.Results.folder); end

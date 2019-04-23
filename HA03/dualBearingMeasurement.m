@@ -16,8 +16,7 @@ function [hx, Hx] = dualBearingMeasurement(x, s1, s2)
     % two states are X-position and Y-position.
 
     
-    % Procedure to calculate hx and Hx using symbolic toolbox
-    
+    % Procedure to calculate hx and Hx using symbolic toolbox    
 % % %     % states
 % % %     syms px py real
 % % %     x = [px py].'
@@ -35,15 +34,16 @@ function [hx, Hx] = dualBearingMeasurement(x, s1, s2)
 
     % initialize outputs with correct sizes
     n  = size(x,1);
-    hx = zeros(2,1);
+    N = size(x,2);
+    hx = zeros(2,N);
     Hx = zeros(2,n);
 
     % calculate readings from the two sensors
-    ang1 = atan2( x(2)-s1(2), x(1)-s1(1) );
-    ang2 = atan2( x(2)-s2(2), x(1)-s2(1) );
+    ang1 = atan2( x(2,:)-s1(2), x(1,:)-s1(1) );
+    ang2 = atan2( x(2,:)-s2(2), x(1,:)-s2(1) );
     
     % output is the concatenation of the two readings
-    hx(1:2,1) = [ang1; 
+    hx(1:2,:) = [ang1; 
                  ang2];
     
     % jacobian of hx, as calculated using the symbolic toolbox

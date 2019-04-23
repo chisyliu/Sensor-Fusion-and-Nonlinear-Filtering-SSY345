@@ -1,4 +1,4 @@
-function [mu_y, Sigma_y, y_s] = approxGaussianTransform(mu_x, Sigma_x, f, N)
+function [mu_y, Sigma_y, y_s, x_s] = approxGaussianTransform(mu_x, Sigma_x, f, N)
     %approxGaussianTransform takes a Gaussian density and a transformation 
     %function and calculates the mean and covariance of the transformed density.
     %
