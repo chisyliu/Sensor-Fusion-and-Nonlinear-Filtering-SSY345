@@ -6,9 +6,11 @@ cp = fp.getColor(1:10);
 % number of samples to estimate mean and covariance of the transformed gaussian
 N=10000;
 % type of filter update
-type = 'UKF';   % {'EKF', 'UKF', 'CKF'}
+type = 'CKF';   % {'EKF', 'UKF', 'CKF'}
 % choose between two prior distributions
 distribution = 2; % 1 or 2
+savefig = false;
+
 
 % Set distributions
 if distribution == 1
@@ -45,7 +47,7 @@ elseif strcmp(type,'EKF')
 end
 
 
-figure('Color','white','Position',[837  424  603  429]);
+figure('Color','white','Position',[651  364  588  441]);
 grid on; hold on %, axis equal
 sc1 = scatter(y(1,:), y(2,:), 20, 'filled', 'MarkerFaceColor', cp(1,:), 'MarkerFaceAlpha',0.1, 'DisplayName','y = h(x) + r');
 
@@ -67,8 +69,7 @@ xlabel 'y[1] - \phi_1', ylabel 'y[2] - \phi_2'
 title(sprintf('Filter type: %s, x~p%d(x)',type,distribution))
 legend('Location','southeast')
 
-fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution))
-
+if savefig, fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution)); end
 
 
 %% Question 2 - A) Non-linear Kalman filtering
@@ -77,9 +78,19 @@ close all; clear all; clc;
 cp = fp.getColor(1:10);
 
 % select case
-icase = 1;  % {1,2}
+icase = 2;  % {1,2}
 % generated sequence length
 N=100;
+
+
+% Prior information
+x_0 = [0 0 14 0 0]';
+P_0 = diag([10 10 2 pi/180 5*pi/180].^2);
+% Sampling time
+T = 1;
+% Sensor positions
+s1 = [-200 100]';
+s2 = [-200 -100]';
 
 
 sigma_v = 1;
@@ -94,15 +105,6 @@ sigma_phi2 = 0.5*pi/180;
 Q = diag([0 0 T*sigma_v^2 0 T*sigma_w^2]);
 R = diag([sigma_phi1^2 sigma_phi2^2]);
 
-
-% Prior information
-x_0 = [0 0 14 0 0]';
-P_0 = diag([10 10 2 pi/180 5*pi/180].^2);
-% Sampling time
-T = 1;
-% Sensor positions
-s1 = [-200 100]';
-s2 = [-200 -100]';
 
 
 % generate state sequence
@@ -119,7 +121,6 @@ Xm(2,:) = s1(2) + tan(Y(1,:)) .* ( Xm(1,:) - s1(1) );
 
 
 for type = {'EKF','UKF','CKF'}
-
 
     % filter
     [xf, Pf, xp, Pp] = nonLinearKalmanFilter(Y, x_0, P_0, f, Q, h, R, type{1});
@@ -145,7 +146,8 @@ for type = {'EKF','UKF','CKF'}
     title(sprintf('Case %d, filter type: %s',icase,type{1}))
     legend([p1 p2 p3 p4 sc1 sc2], 'Location','southwest')
 
-%     fp.savefig(sprintf('q2_t_%s_c_%d',type{1}, icase))
+%     fp.savefig(sprintf('q2_t_%s_c_%d','CKF', icase))
+    fp.savefig(sprintf('q2_t_%s_c_%d',type{1}, icase))
 end
 
 
@@ -199,7 +201,7 @@ for icase = 1:2
             title(sprintf('filter type: %s, pos-%s',type{itype},pos{ipos}))
         end
     end
-%     fp.savefig(sprintf('q2_hist_c_%d',icase))
+    fp.savefig(sprintf('q2_hist_c_%d',icase))
 end
 
 
