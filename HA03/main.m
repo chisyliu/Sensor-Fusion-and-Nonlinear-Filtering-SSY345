@@ -9,7 +9,6 @@ N=10000;
 type = 'CKF';   % {'EKF', 'UKF', 'CKF'}
 % choose between two prior distributions
 distribution = 2; % 1 or 2
-savefig = false;
 
 
 % Set distributions
@@ -69,7 +68,7 @@ xlabel 'y[1] - \phi_1', ylabel 'y[2] - \phi_2'
 title(sprintf('Filter type: %s, x~p%d(x)',type,distribution))
 legend('Location','southeast')
 
-if savefig, fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution)); end
+% fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution));
 
 
 %% Question 2 - A) Non-linear Kalman filtering
@@ -136,23 +135,26 @@ for type = {'EKF','UKF','CKF'}
 
     p1 = plot(X(1,:),X(2,:), 'Color', cp(1,:), 'LineWidth',2, 'DisplayName','True position sequence');
     p2 = plot(xf(1,:),xf(2,:), 'Color', cp(2,:), 'LineWidth',2, 'DisplayName','Sensor position');
+    
     sc1 = scatter(s1(1), s1(2), 100, 'o', 'MarkerFaceAlpha',0.8, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:),'DisplayName','sensor 1 location');
     sc2 = scatter(s2(1), s2(2), 200, 'h', 'MarkerFaceAlpha',0.8, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:),'DisplayName','sensor 2 location');
-
+    
     axis manual
     p3 = plot(Xm(1,:),Xm(2,:), 'Color', [cp(3,:) 0.8], 'LineWidth',1, 'DisplayName','Measured position');
-
+    
     xlabel 'pos x', ylabel 'pos y'
     title(sprintf('Case %d, filter type: %s',icase,type{1}))
     legend([p1 p2 p3 p4 sc1 sc2], 'Location','southwest')
 
 %     fp.savefig(sprintf('q2_t_%s_c_%d','CKF', icase))
-    fp.savefig(sprintf('q2_t_%s_c_%d',type{1}, icase))
+%     fp.savefig(sprintf('q2_t_%s_c_%d',type{1}, icase))
 end
 
 
-%% Question 2 - B)
+%% Question 2 - C)
 
+
+% perform Monte-Carlo simulation
 MC = 100;
 type = {'EKF','UKF','CKF'};
 
@@ -188,6 +190,12 @@ for imc = 1:MC
     imc
 end
 
+
+
+
+% plot histogram
+
+bins = 100;
 close all;
 pos = {'x','y'};
 for icase = 1:2
@@ -196,14 +204,21 @@ for icase = 1:2
     for itype = 1:numel(type)
         for ipos = 1:numel(pos)
             subplot(2,3, itype + (ipos-1)*numel(type) );
-            histogram( est_err{icase,itype}(ipos,:), 20 ,'DisplayName','histogram MSE of position error norm');
+            
+            idata = est_err{icase,itype}(ipos,:);
+            mean(idata)
+            var(idata)
+            
+            histogram( idata, bins ,'DisplayName','histogram MSE of position error norm');
             xlabel(sprintf('pos-%s error',pos{ipos}))
-            title(sprintf('filter type: %s, pos-%s',type{itype},pos{ipos}))
+            title(sprintf('filter type: %s, pos-%s \n mean: %.2f, std.dev: %.1f',type{itype},pos{ipos},mean(idata),sqrt(var(idata)) ))
+            
+            
         end
     end
-    fp.savefig(sprintf('q2_hist_c_%d',icase))
+%     fp.savefig(sprintf('q2_hist_c_%d',icase))
 end
-
+close all;
 
 
 
@@ -211,6 +226,14 @@ end
 
 clear all; close all; clc;
 cp = fp.getColor(1:10);
+
+% xf(3,:)
+
+sigma_v = 1         *1e-4;
+sigma_w = pi/180    *180/(200) *1e-4;
+
+name2save = 'S';
+savefig = false;
 
 % True track
 % Sampling period
@@ -251,11 +274,8 @@ Y = genNonLinearMeasurementSequence(X,h,R);
 
 
 % Motion model
-sigma_v = 1;
-sigma_w = pi/180;
-
 f = @(x) coordinatedTurnMotion(x,T);
-Q = diag([0 0 T*sigma_v^2 0 T*sigma_w^2]) * diag([0 0 1e4 0 1e0]);      % multiplying by a FACTOR
+Q = diag([0 0 T*sigma_v^2 0 T*sigma_w^2]);
 
 [xf, Pf, xp, Pp] = nonLinearKalmanFilter(Y, x_0, P_0, f, Q, h, R, 'CKF');
 
@@ -266,13 +286,14 @@ Xm(2,:) = s1(2) + tan(Y(1,:)) .* ( Xm(1,:) - s1(1) );
 
 
 
-figure('Color','white','Position',[758  175  603  429]);
-grid on; hold on %, axis equal
+% figure('Color','white','Position',[758  175  603  429]);
+figure('Color','white','Position',[520  180  654  417]);
+grid on; hold on, axis equal;
 
-for i=1:20:length(xf)
+for i=1:15:length(xf)
     ell_xy = sigmaEllipse2D(xf(1:2,i),Pf(1:2,1:2,i),3,50);
 %     fill(ell_xy(1,:),ell_xy(2,:), '--', 'Color',cp(5,:), 'DisplayName','3-sigma level');
-    p4 = fill(ell_xy(1,:),ell_xy(2,:), cp(5,:),'facealpha',.2, 'DisplayName','3-sigma level');   %, 'edgecolor','none'
+    p4 = fill(ell_xy(1,:),ell_xy(2,:), cp(5,:),'facealpha',.1, 'DisplayName','3-sigma level');   %,'edgecolor','none'
 end
 
 p1 = plot(X(1,:),X(2,:), 'Color', cp(1,:), 'LineWidth',2, 'DisplayName','True position sequence');
@@ -284,20 +305,22 @@ axis manual
 p3 = plot(Xm(1,:),Xm(2,:), 'Color', [cp(3,:) 0.3], 'LineWidth',1, 'DisplayName','Measured position');
 % p3 = scatter(Xm(1,:),Xm(2,:), 40, 'o', 'MarkerFaceAlpha',0, 'MarkerFaceColor', cp(3,:), 'MarkerEdgeColor', cp(3,:), 'DisplayName','Measured position');
 
-
 xlabel 'pos x', ylabel 'pos y'
 % title(sprintf('Case %d, filter type: %s',icase,type{1}))
 legend([p1 p2 p3 p4 sc1 sc2], 'Location','west')
-%     fp.savefig(sprintf('q3_t_%s_c_%d',type{1}, icase))
+if savefig fp.savefig(sprintf('q3_%s',name2save)); end
 
 
 
-
+% plot position error
 figure('Color','white','Position',[428  692  930  207]);
 grid on, hold on;
 plot( (1:K)*T, vecnorm(xf(1:2,:)-X(1:2,2:end), 2, 1) , 'LineWidth',1)
 ylabel('$|p_k - \hat{p_{k|k}}|_2$', 'Interpreter','Latex', 'FontSize',16), xlabel('Time [s]')
 title 'Position error'
+if savefig fp.savefig(sprintf('q3_%s_err',name2save)); end
+
+
 
 %% Help functions
 
