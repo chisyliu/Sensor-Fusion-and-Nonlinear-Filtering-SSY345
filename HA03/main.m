@@ -25,7 +25,7 @@ s1 = [0, 100]';
 s2 = [100, 0]';
 
 % Noise covariance
-R = diag([0.1*pi/180 0.1*pi/180]);
+R = diag([0.1*pi/180 0.1*pi/180].^2);
 % Measurement model y = h(x) + R
 h = @(x) dualBearingMeasurement(x,s1,s2);
 
@@ -68,7 +68,7 @@ xlabel 'y[1] - \phi_1', ylabel 'y[2] - \phi_2'
 title(sprintf('Filter type: %s, x~p%d(x)',type,distribution))
 legend('Location','southeast')
 
-% fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution));
+fp.savefig(sprintf('q1_t_%s_d_%d',type,distribution));
 
 
 %% Question 2 - A) Non-linear Kalman filtering
@@ -193,32 +193,43 @@ end
 
 
 
-% plot histogram
+%% plot histogram
+close all;
 
 bins = 100;
 close all;
 pos = {'x','y'};
 for icase = 1:2
     figure('Color','white','Position',[381   314  1012   537]);
-    sgtitle(sprintf('histogram position error, case: %d',icase))
+    sgtitle(sprintf('Normalized histogram of the position error, case: %d',icase))
     for itype = 1:numel(type)
         for ipos = 1:numel(pos)
             subplot(2,3, itype + (ipos-1)*numel(type) );
+            hold on;
             
             idata = est_err{icase,itype}(ipos,:);
-            mean(idata)
-            var(idata)
+            mu  = mean(idata);
+            stddev = std(idata);
             
-            histogram( idata, bins ,'DisplayName','histogram MSE of position error norm');
+            % remove outliers
+            idx = abs(idata-mu) < stddev*3;
+            idata = idata(idx);
+            
+            histogram( idata, bins ,'Normalization','pdf','DisplayName','histogram MSE of position error norm');
+            
+            [x,y] = normpdf2(mu, stddev^2, 3, 100);
+            plot(x,y, 'LineWidth',2, 'DisplayName', sprintf('gaussian N(x; 0, $P_{N|N})$') );
+            
+            xlims = max(abs(idata));
+            xlim([-xlims xlims]);
+            
             xlabel(sprintf('pos-%s error',pos{ipos}))
-            title(sprintf('filter type: %s, pos-%s \n mean: %.2f, std.dev: %.1f',type{itype},pos{ipos},mean(idata),sqrt(var(idata)) ))
-            
-            
+            title(sprintf('filter type: %s, pos-%s \n mean: %.2f, std.dev: %.1f',type{itype},pos{ipos},mu,stddev ))    
         end
     end
-%     fp.savefig(sprintf('q2_hist_c_%d',icase))
+    fp.savefig(sprintf('q2_hist_c_%d',icase))
 end
-close all;
+% close all;
 
 
 
@@ -229,8 +240,8 @@ cp = fp.getColor(1:10);
 
 % xf(3,:)
 
-sigma_v = 1         *1e-4;
-sigma_w = pi/180    *180/(200) *1e-4;
+sigma_v = 1        *1e-4;
+sigma_w = pi/180 ;
 
 name2save = 'S';
 savefig = false;
@@ -308,7 +319,7 @@ p3 = plot(Xm(1,:),Xm(2,:), 'Color', [cp(3,:) 0.3], 'LineWidth',1, 'DisplayName',
 xlabel 'pos x', ylabel 'pos y'
 % title(sprintf('Case %d, filter type: %s',icase,type{1}))
 legend([p1 p2 p3 p4 sc1 sc2], 'Location','west')
-if savefig fp.savefig(sprintf('q3_%s',name2save)); end
+% if savefig fp.savefig(sprintf('q3_%s',name2save)); end
 
 
 
@@ -318,7 +329,7 @@ grid on, hold on;
 plot( (1:K)*T, vecnorm(xf(1:2,:)-X(1:2,2:end), 2, 1) , 'LineWidth',1)
 ylabel('$|p_k - \hat{p_{k|k}}|_2$', 'Interpreter','Latex', 'FontSize',16), xlabel('Time [s]')
 title 'Position error'
-if savefig fp.savefig(sprintf('q3_%s_err',name2save)); end
+% if savefig fp.savefig(sprintf('q3_%s_err',name2save)); end
 
 
 
@@ -337,3 +348,7 @@ function [x, P] = estimateSP(f, R, SP, W)
 end
 
 
+function [x,y] = normpdf2(mu, sigma2, level, N)
+    x = linspace(mu-level*sqrt(sigma2), mu+level*sqrt(sigma2), N);
+    y = normpdf(x, mu, sqrt(sigma2));
+end
