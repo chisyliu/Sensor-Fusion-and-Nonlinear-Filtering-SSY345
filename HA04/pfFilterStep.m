@@ -18,9 +18,9 @@ function [X_k, W_k] = pfFilterStep(X_kmin1, W_kmin1, y_k, proc_f, proc_Q, meas_h
     X_k = mvnrnd( proc_f(X_kmin1)' ,proc_Q )';  
     
     % calculate p(y_k|x(i)_k) 
-    Y = mvnpdf(y_k',meas_h(X_k)',meas_R)';
+    Wy = mvnpdf(y_k',meas_h(X_k)',meas_R)';
     
     % compute weights
-    W_k = W_kmin1 .* Y;
+    W_k = W_kmin1 .* Wy;
     W_k = W_k / sum(W_k);
 end

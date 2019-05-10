@@ -1,4 +1,4 @@
-function [xs, Ps, xf, Pf, xp, Pp] = nonLinRTSsmoother(Y, x_0, P_0, f, T, Q, S, h, R, sigmaPoints, type)
+function [xs, Ps, xf, Pf, xp, Pp] = nonLinRTSsmoother(Y, x_0, P_0, f, Q, h, R, sigmaPoints, type)
     % NONLINRTSSMOOTHER Filters measurement sequence Y using a 
     % non-linear Kalman filter. 
     %
@@ -29,11 +29,12 @@ function [xs, Ps, xf, Pf, xp, Pp] = nonLinRTSsmoother(Y, x_0, P_0, f, T, Q, S, h
     n = length(x_0);
     m = size(Y,1);
     
+    
     %% Forward filtering
     
-    f2 = @(x) f(x,T);
-    h2 = @(x) h(x,S(:,1));
-    [xf, Pf, xp, Pp] = nonLinearKalmanFilter(Y, x_0, P_0, f2, Q, h2, R, type);
+%     f2 = @(x) f(x,T);
+%     h2 = @(x) h(x,S(:,1));
+    [xf, Pf, xp, Pp] = nonLinearKalmanFilter(Y, x_0, P_0, f, Q, h, R, type);
     
     %% Backward filtering
 
@@ -43,7 +44,7 @@ function [xs, Ps, xf, Pf, xp, Pp] = nonLinRTSsmoother(Y, x_0, P_0, f, T, Q, S, h
 
     % backward recursion - last filter output is already smoothed
     for k=N-1:-1:1
-        [xs(:,k), Ps(:,:,k)] = nonLinRTSSupdate(xs(:,k+1), Ps(:,:,k+1), xf(:,k), Pf(:,:,k), xp(:,k+1),  Pp(:,:,k+1), f, T, sigmaPoints, type);
+        [xs(:,k), Ps(:,:,k)] = nonLinRTSSupdate(xs(:,k+1), Ps(:,:,k+1), xf(:,k), Pf(:,:,k), xp(:,k+1),  Pp(:,:,k+1), f, sigmaPoints, type);
     end
     
 end

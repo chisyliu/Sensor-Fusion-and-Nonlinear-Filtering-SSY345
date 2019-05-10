@@ -2,7 +2,7 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, proc_f, proc_Q, meas_h, meas
     % PFFILTER Filters measurements Y using the SIS or SIR algorithms and a
     % state-space model.
     %
-    % Input:
+    % Input:pfFilter(x_0
     %   x_0         [n x 1] Prior mean
     %   P_0         [n x n] Prior covariance
     %   Y           [m x K] Measurement sequence to be filtered
@@ -35,13 +35,14 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, proc_f, proc_Q, meas_h, meas
     Wp(:,1)  = 1/N * ones(1,N);
     
     for k=2:K+1
-
+        % perform a particle filter step for the next measurement
         [Xp(:,:,k), Wp(:,k)] = pfFilterStep(Xp(:,:,k-1), Wp(:,k-1)', Y(:,k-1), proc_f, proc_Q, meas_h, meas_R);
-
+        % plotFunc(k, X_k, W_k, xf, Pf, bResample, sigma, ax);
+        % resample
         if bResample
             [Xp(:,:,k), Wp(:,k), ~] = resampl(Xp(:,:,k), Wp(:,k)'); 
         end
-
+        % estimate mean and covariance given the particles
         xfp(:,k)   = sum( Xp(:,:,k).*Wp(:,k)' ,2 );
         Pfp(:,:,k) = Wp(:,k)'.*(Xp(:,:,k) - xfp(:,k))*(Xp(:,:,k) - xfp(:,k))';
     end

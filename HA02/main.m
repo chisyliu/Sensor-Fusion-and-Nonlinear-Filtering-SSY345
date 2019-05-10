@@ -278,9 +278,6 @@ legend([p2 p3 p4 p5],'Location','northwest'); ylim([-15 35])
 
 
 
-
-
-
 %% 2) C)
 
 close all;

@@ -5,7 +5,6 @@ function [xs, Ps] = nonLinRTSSupdate(xs_kplus1, ...
                                      xp_kplus1, ...
                                      Pp_kplus1, ...
                                      f, ...
-                                     T, ...
                                      sigmaPoints, ...
                                      type)
     % NONLINRTSSUPDATE Calculates mean and covariance of smoothed state
@@ -32,7 +31,7 @@ function [xs, Ps] = nonLinRTSSupdate(xs_kplus1, ...
     
     if strcmp( type, 'EKF' )   
         % evaluate motion model at ^x_{k|k}
-        [~, df_xk] = f(xf_k,T);
+        [~, df_xk] = f(xf_k);
         % approximate P_{k,k+1|k}
         Pkkp1 = Pf_k * df_xk';
         
@@ -42,8 +41,8 @@ function [xs, Ps] = nonLinRTSSupdate(xs_kplus1, ...
         % predict covariance Pkkp1 = P_{k,k+1|k}
         Pkkp1 = zeros(size(xf_k,1));
         for i=1:numel(W)
-            Pkkp1 = Pkkp1 + (SP(:,i)-xf_k)*(f(SP(:,i),T)-xp_kplus1).' * W(i);
-        end        
+            Pkkp1 = Pkkp1 + (SP(:,i)-xf_k)*(f(SP(:,i))-xp_kplus1).' * W(i);
+        end
     end
 
     %% backward recursion
