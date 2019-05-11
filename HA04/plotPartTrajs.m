@@ -1,5 +1,4 @@
-
-function plotPartTrajs(k, Xk, Xkmin1, ~, j)
+function plotPartTrajs(k, Xk, Xkmin1, Wk, j, bAlpha)
 %PLOTPARTTRAJS Summary of this function goes here
 %   Plots lines between ith sample of Xk and j(i)th sample of Xk-1. When 
 %   repeated during a particle filter execution, this will produce particle 
@@ -14,14 +13,20 @@ function plotPartTrajs(k, Xk, Xkmin1, ~, j)
 %   Xkmin1      [n x N] N particles of dimension n to approximate p(x_k-1).
 %   Wk          [1 x N] Corresponding weights.
 %   j           Index vector such that Xk(:,i) = Xkmin1(:,j(i))
-
-    if (size(Xk,2) <= 50) % At most 50 particles may be plotted
-        for i = 1:size(Xk,2) % loop through all particles
-            plot([k-1 k], [Xkmin1(1,j(i)) Xk(1,i)]);
-            hold on 
+    
+    hold on;
+    N = size(Xk,2);
+    if ( N <= 50) % At most 50 particles may be plotted
+        for i = 1:N % loop through all particles
+            if bAlpha
+                alph = min(1,max(0, Wk(i)*N ));
+            else
+                alph = 0.2;
+            end
+            plot([k-1 k], [Xkmin1(1,j(i)) Xk(1,i)], 'LineWidth',1,'Color',[0 0 0 alph]);
         end
         title(['Particle trajectories up to time k=', num2str(k)]);
-        pause(0.05);
+        drawnow();
     else
         disp('Too many particles to plot!'); 
     end

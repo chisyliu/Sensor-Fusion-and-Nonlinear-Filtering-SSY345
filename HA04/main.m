@@ -113,8 +113,16 @@ R = 2.5;
 x_0 = 2;
 P_0 = 6;
 
-% General parameters
+% number of time steps
 N = 50;
+% number of particles
+Np = 100;
+% resample particles?
+% bResample = true;
+% sigma for the approximation in plotPostPdf
+sigma = 1;
+
+
 
 % calculate state and measurement sequences
 X = genLinearStateSequence(x_0,P_0,A,Q,N);
@@ -123,29 +131,172 @@ Y = genLinearMeasurementSequence(X, H, R);
 % filter data
 [xf, Pf] = kalmanFilter(Y, x_0, P_0, A, Q, H, R);
 % [xs, Ps, xf, Pf, xp, Pp] = nonLinRTSsmoother(Y, x_0, P_0, f, Q, h, R, @sigmaPoints, 'CKF');
-figure
-[xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, 1000, true, @plotPostPdf);
 
-plotPostPdf(k, Xk, Wk, xf, Pf, bResample, sigma, ax)
+
+
+figure('Color','white','Position',[292   475  1165   422]);
+
+subplot(1,2,1)
+bResample = true;
+plotFunc_handle_r  = @(k, Xk, Xkmin1, Wk, j) plotPostPdf(k, Xk, Wk, xf, Pf, bResample, sigma, gca);
+[xfpr, Pfpr, Xpr, Wpr] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle_r);
+
+subplot(1,2,2)
+bResample = false;
+plotFunc_handle  = @(k, Xk, Xkmin1, Wk, j) plotPostPdf(k, Xk, Wk, xf, Pf, bResample, sigma, gca);
+[xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle);
+
+
+mse(X(2:end)-xf)
+mse(X(2:end)-xfpr)
+mse(X(2:end)-xfp)
+
 
 % plot position
 figure('Color','white','Position',[199   288  1152   457]);
 hold on, grid on;
-p3 = plot(0:N, H*X, 'b', 'LineWidth',3, 'DisplayName','true state');
-p3.Color = [p3.Color 0.2];
-p2 = plot(0:N, H*[x_0 xf], 'b', 'LineWidth',1.5, 'DisplayName','state estimate');
-p1 = plot(1:N, Y, '*r', 'DisplayName','measurements');
-p4 = plot(0:N, H*[x_0 xf] + 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','+3-sigma level');
-p5 = plot(0:N, H*[x_0 xf] - 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','-3-sigma level');
+p1 = plot(0:N, H*X, 'b', 'LineWidth',4, 'DisplayName','true state');
+p1.Color = [p1.Color 0.2];
+p2 = plot(0:N, H*[x_0 xf],  'Color','k', 'LineWidth',1.5, 'DisplayName','KF estimate');
+p_pfr = plot(0:N, H*[x_0 xfpr], 'Color',cp(5,:), 'LineWidth',1.5, 'DisplayName','PF estimate with resampling');
+p_pf  = plot(0:N, H*[x_0 xfp],  'Color',cp(3,:), 'LineWidth',1.5, 'DisplayName','PF estimate without resampling');
+p4 = plot(1:N, Y, '*r', 'DisplayName','measurements');
+% p5 = plot(0:N, H*[x_0 xf] + 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','+3-sigma level');
+% p6 = plot(0:N, H*[x_0 xf] - 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','-3-sigma level');
 xlabel('k - time step');
 ylabel('position');
-legend([p1 p2 p3 p4 p5],'Location','northwest');
-% ylim([-3 11])
-% fp.savefig('q2b-pos')
+legend([p1 p2 p_pfr p_pf p4],'Location','northwest');
+title('Comparison KF and PF')
 
+
+ts = 19;
+fig = figure('Color','white','Position',[675  549  570  420]);
+hold on, grid on;
+[Xl, KF, pApprox_r] = plotFunc_handle_r (ts, Xpr(:,:,ts), Xpr(:,:,ts-1), Wpr(:,ts)', 0);
+[Xl, KF, pApprox]   = plotFunc_handle   (ts, Xp(:,:,ts),  Xp(:,:,ts-1),  Wp(:,ts)',  0);
+set(fig, 'Name', ['p_',num2str(ts), '_', 'SIR']);
+plot(Xl, pApprox,    'Color',cp(1,:),'LineWidth', 2, 'DisplayName','PF estimate with resampling')
+plot(Xl, pApprox_r,  'Color',cp(3,:),'LineWidth', 2, 'DisplayName','PF estimate without resampling')
+plot(Xl, KF, 'r-.', 'LineWidth', 2, 'DisplayName','Kalman filter')
+legend( 'Location', 'southwest')
+title(['p(x_k |  y_{1:k}), k=', num2str(ts)])
+
+
+%% 2B
+
+Np = 50;
+
+bAlpha = true;
+
+ploth = @(k, Xk, Xkmin1, Wk, j) plotPartTrajs(k, Xk, Xkmin1, Wk, j, bAlpha);
+
+figure('Color','white','Position',[292   475  1165   422]);
+
+subplot(1,2,1)
+bResample = true;
+pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth);
+plot(0:length(X)-1, X, 'Color',cp(2,:),'LineWidth', 2)
+xlabel 'time step', ylabel 'state value', title 'Particle trajectories with resampling'
+
+subplot(1,2,2)
+bResample = false;
+pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth );
+plot(0:length(X)-1, X, 'Color',cp(2,:),'LineWidth', 2)
+xlabel 'time step', ylabel 'state value', title 'Particle trajectories without resampling'
+
+
+%% 3A
+
+clear all; close all; clc;
+cp = fp.getColor(1:10);
+
+
+% Generate measurements
+% [x,y] = MapProblemGetPoint(false);
+slam = SLAM();
+slam.plotmap()
+% slam.drawPath('Xk.mat')
+slam.loadPosition('Xk.mat');
+slam.pos
+
+R = eye(2) * 0.01^2;
+ddt = @(x,dt) conv2(x,[1 -1]/dt,'valid');
+% measurements
+v = ddt(slam.pos,1) + mvnrnd(zeros(2,1), R, length(slam.pos)-1)';
 
 
 %%
+close all;
+
+sigma_v = 2;%4;
+sigma_w = deg2rad(20); %deg2rad(10);
+T = 1;
+
+% Motion model
+f = @(x) coordinatedTurnMotion(x,T);
+Q = diag([0 0 T*sigma_v^2 0 T*sigma_w^2]);
+
+% Measurement model
+h = @(x) [x(3,:).*cos(x(4,:));
+          x(3,:).*sin(x(4,:))];
+R = diag([0.2 0.2].^2);
+
+N = 10000;
+bResample = true;
+
+% Prior distribution
+x_0 = [p(:,1); 0.4; 0; 0];
+P_0 = diag([0 0 1 deg2rad(180) deg2rad(5)].^2);
+
+Xp0 = [ SLAM.genValidRandParticles(N);     % pos
+        mvnrnd(x_0(3:5),P_0(3:5,3:5),N)'];
+
+[xfp, Pfp, Xp, Wp] = pfFilter(Xp0,P_0,v,f,Q,h,R,N,bResample,[], @SLAM.isOnRoad);
+
+
+% plot SLAM
+% close all;
+figure('Color','white','Position',[593    19  1249   835]);
+clf;
+slam.plotmap()
+
+pp = scatter( Xp0(1,:), Xp0(2,:) ,50, 'o', 'MarkerFaceAlpha',0.2, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:))
+ell_xy = sigmaEllipse2D(xfp(1:2,1),Pfp(1:2,1:2,1),3,50);
+pe = fill(ell_xy(1,:),ell_xy(2,:), cp(5,:),'facealpha',.1);
+
+pause(3)
+K = length(xfp);
+for k=2:K
+    plot( xfp(1,k-1:k)+xfp(2,k-1:k)*1i, '-*','Color',cp(1,:) )
+    plot( slam.pos(1,k-1:k)+slam.pos(2,k-1:k)*1i, '-*','Color',cp(2,:) )
+    pp.XData = Xp(1,:,k);
+    pp.YData = Xp(2,:,k);
+    
+    ell_xy = sigmaEllipse2D(xfp(1:2,k),Pfp(1:2,1:2,k),3,50);
+    pe.XData = ell_xy(1,:);
+    pe.YData = ell_xy(2,:);
+    
+    drawnow()
+    pause(0.1)
+end
+
+
+figure
+
+subplot(1,3,1);hold on;
+plot(v(1,:))
+plot(xfp(3,:).*cos(xfp(4,:)))
+subplot(1,3,2);hold on;
+plot(v(2,:))
+plot(xfp(3,:).*sin(xfp(4,:)))
+subplot(1,3,3);hold on;
+plot(vecnorm(v))
+plot(xfp(3,:))
+
+plot( wrapTo180( rad2deg(xfp(4,:)) ))
+
+
+%% help functions
 
 
 function plotTurnU( X, xf, Pf, Xm, sk, signame, coln)

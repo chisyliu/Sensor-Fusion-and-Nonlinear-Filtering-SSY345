@@ -16,8 +16,8 @@ function [Xr, Wr, j] = resampl(X, W)
 
     N=size(X,2);
     
-    % Generates the segmented numberline from 0 to 1 (upper edge not included since it will never be graer than the edge)
-    segment = [0 cumsum(W)];
+    % Generates the segmented numberline from 0 to 1
+    segment = [0 cumsum(W)/sum(W)];
     
     % draw samples from uniform distribution on [0,1]
     samples = rand([1 N]);
