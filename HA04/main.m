@@ -214,10 +214,8 @@ cp = fp.getColor(1:10);
 % Generate measurements
 % [x,y] = MapProblemGetPoint(false);
 slam = SLAM();
-slam.plotmap()
 % slam.drawPath('Xk.mat')
 slam.loadPosition('Xk.mat');
-slam.pos
 
 R = eye(2) * 0.01^2;
 ddt = @(x,dt) conv2(x,[1 -1]/dt,'valid');
@@ -245,8 +243,8 @@ N = 10000;
 bResample = true;
 
 % Prior distribution
-x_0 = [p(:,1); 0.4; 0; 0];
-P_0 = diag([0 0 1 deg2rad(180) deg2rad(5)].^2);
+x_0 = [slam.pos(:,1); 0.4; 0; 0];
+P_0 = diag([0 0 0 deg2rad(180) deg2rad(5)].^2);
 
 Xp0 = [ SLAM.genValidRandParticles(N);     % pos
         mvnrnd(x_0(3:5),P_0(3:5,3:5),N)'];
@@ -293,7 +291,7 @@ subplot(1,3,3);hold on;
 plot(vecnorm(v))
 plot(xfp(3,:))
 
-plot( wrapTo180( rad2deg(xfp(4,:)) ))
+% plot( wrapTo180( rad2deg(xfp(4,:)) ))
 
 
 %% help functions
