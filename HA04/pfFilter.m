@@ -47,6 +47,7 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, pl
         if ~isempty(plotFunc)
             plotFunc(k-1, Xp(:,:,k), Xp(:,:,k-1), Wp(:,k)', j);
         end
+        % if handle bmap is given: update p'(y_k|x(i)_k)=p(y_k|x(i)_k)*bmap(y_k|x(i)_k)
         if ~isempty(bmap)
             p_map_x = bmap(Xp(1,:,k),Xp(2,:,k));
             Wp(:,k) = Wp(:,k) .* p_map_x;

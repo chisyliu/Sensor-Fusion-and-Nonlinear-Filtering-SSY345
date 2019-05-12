@@ -14,7 +14,7 @@ function [X_k, W_k] = pfFilterStep(X_kmin1, W_kmin1, y_k, f, Q, h, R)
     %   X_k         [n x N] Particles for state x in time k
     %   W_k         [1 x N] Weights for state x in time k
 
-    % calculate p(x(i)_k|x(i)_{k-1})
+    % draw samples p(x(i)_k|x(i)_{k-1})
     X_k = mvnrnd( f(X_kmin1)' ,Q )';  
     
     % calculate p(y_k|x(i)_k) 
