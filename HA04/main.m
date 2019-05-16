@@ -1,14 +1,9 @@
+%% 1A
 clear all; close all; clc;
 cp = fp.getColor(1:10);
 
-
-%% 1A
-
-sigma_v = 1        *1e-4;
+sigma_v = 1*1e-4;
 sigma_w = pi/180 ;
-
-name2save = 'S';
-savefig = false;
 
 % True track
 % Sampling period
@@ -58,16 +53,19 @@ Q = diag([0 0 T*sigma_v^2 0 T*sigma_w^2]);
 Xm = sk + Y(1,:).*[cos(Y(2,:));sin(Y(2,:))];
 
 
-figure('Color','white','Position',[387  228  990  357]);
+figure('Color','white','Position',[207    70  1355   528]);
 subplot(1,2,1)
 title('Filter')
 plotTurnU( X, xf, Pf, Xm, sk, 'filter', 2)
 subplot(1,2,2)
 title('Smoother')
 plotTurnU( X, xs, Ps, Xm, sk, 'smoother', 4)
+% fp.savefig('q1a-pos')
+
 
 figure('Color','white','Position',[428  692  930  207]);
 plotTurnUError( T, xf, xs, X )
+% fp.savefig('q1a-error')
 
 
 %% 1B
@@ -82,16 +80,19 @@ Y(1,150) = norm(X(1:2,150)) + 100;
 % calcualte unfiltered position from sensors given angles
 Xm = sk + Y(1,:).*[cos(Y(2,:));sin(Y(2,:))];
 
-figure('Color','white','Position',[387  228  990  357]);
+figure('Color','white','Position',[207    70  1355   528]);
 subplot(1,2,1)
 title('Filter')
 plotTurnU( X, xf, Pf, Xm, sk, 'filter', 2)
 subplot(1,2,2)
 title('Smoother')
 plotTurnU( X, xs, Ps, Xm, sk, 'smoother', 4)
+% fp.savefig('q1b-pos')
+
 
 figure('Color','white','Position',[428  692  930  207]);
 plotTurnUError( T, xf, xs, X )
+% fp.savefig('q1b-error')
 
 
 %% 2A
@@ -134,18 +135,18 @@ Y = genLinearMeasurementSequence(X, H, R);
 
 
 
-figure('Color','white','Position',[292   475  1165   422]);
-
-subplot(1,2,1)
+% figure('Color','white','Position',[292   475  1165   422]);
+% subplot(1,2,1)
 bResample = true;
 plotFunc_handle_r  = @(k, Xk, Xkmin1, Wk, j) plotPostPdf(k, Xk, Wk, xf, Pf, bResample, sigma, gca);
-[xfpr, Pfpr, Xpr, Wpr] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle_r);
+% [xfpr, Pfpr, Xpr, Wpr] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle_r, []);
+[xfpr, Pfpr, Xpr, Wpr] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, [], []);
 
-subplot(1,2,2)
+% subplot(1,2,2)
 bResample = false;
 plotFunc_handle  = @(k, Xk, Xkmin1, Wk, j) plotPostPdf(k, Xk, Wk, xf, Pf, bResample, sigma, gca);
-[xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle);
-
+% [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, plotFunc_handle, []);
+[xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, [], []);
 
 mse(X(2:end)-xf)
 mse(X(2:end)-xfpr)
@@ -157,52 +158,64 @@ figure('Color','white','Position',[199   288  1152   457]);
 hold on, grid on;
 p1 = plot(0:N, H*X, 'b', 'LineWidth',4, 'DisplayName','true state');
 p1.Color = [p1.Color 0.2];
-p2 = plot(0:N, H*[x_0 xf],  'Color','k', 'LineWidth',1.5, 'DisplayName','KF estimate');
-p_pfr = plot(0:N, H*[x_0 xfpr], 'Color',cp(5,:), 'LineWidth',1.5, 'DisplayName','PF estimate with resampling');
-p_pf  = plot(0:N, H*[x_0 xfp],  'Color',cp(3,:), 'LineWidth',1.5, 'DisplayName','PF estimate without resampling');
+p2 = plot(0:N, H*[x_0 xf],  'Color','k', 'LineWidth',2, 'DisplayName','KF estimate');
+p_pfr = plot(0:N, H*[x_0 xfpr], 'Color',cp(5,:), 'LineWidth',2, 'DisplayName','PF estimate with resampling');
+p_pf  = plot(0:N, H*[x_0 xfp],  'Color',cp(3,:), 'LineWidth',2, 'DisplayName','PF estimate without resampling');
 p4 = plot(1:N, Y, '*r', 'DisplayName','measurements');
 % p5 = plot(0:N, H*[x_0 xf] + 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','+3-sigma level');
 % p6 = plot(0:N, H*[x_0 xf] - 3*sqrt([P_0(1) squeeze(Pf(1,1,:))']), '--b', 'DisplayName','-3-sigma level');
 xlabel('k - time step');
 ylabel('position');
-legend([p1 p2 p_pfr p_pf p4],'Location','northwest');
+legend([p1 p2 p_pfr p_pf p4],'Location','southwest');
 title('Comparison KF and PF')
+% fp.savefig('q2a-pos')
 
 
-ts = 19;
+ts = 30; %19
 fig = figure('Color','white','Position',[675  549  570  420]);
 hold on, grid on;
+p1 = plot( X([ts,ts]+1), [0,max([pApprox,pApprox_r])*1.2],'--' , 'Color','b','LineWidth', 4, 'DisplayName','PF estimate with resampling')
+p1.Color = [p1.Color 0.2];
 [Xl, KF, pApprox_r] = plotFunc_handle_r (ts, Xpr(:,:,ts), Xpr(:,:,ts-1), Wpr(:,ts)', 0);
 [Xl, KF, pApprox]   = plotFunc_handle   (ts, Xp(:,:,ts),  Xp(:,:,ts-1),  Wp(:,ts)',  0);
 set(fig, 'Name', ['p_',num2str(ts), '_', 'SIR']);
-plot(Xl, pApprox,    'Color',cp(1,:),'LineWidth', 2, 'DisplayName','PF estimate with resampling')
-plot(Xl, pApprox_r,  'Color',cp(3,:),'LineWidth', 2, 'DisplayName','PF estimate without resampling')
-plot(Xl, KF, 'r-.', 'LineWidth', 2, 'DisplayName','Kalman filter')
-legend( 'Location', 'southwest')
-title(['p(x_k |  y_{1:k}), k=', num2str(ts)])
+plot( Xl, pApprox,    'Color',cp(5,:),'LineWidth', 2, 'DisplayName','PF estimate with resampling')
+plot( Xl, pApprox_r,  'Color',cp(3,:),'LineWidth', 2, 'DisplayName','PF estimate without resampling')
+plot( Xl, KF, '-.',  'Color','k', 'LineWidth', 2, 'DisplayName','Kalman filter')
+legend( 'Location', 'southeast')
+title(['p(x_k |  y_{1:k}),   k=', num2str(ts)])
+ylim([0,max([pApprox,pApprox_r])*1.2])
+% fp.savefig(sprintf('q2a-dist-%d',ts))
 
 
 %% 2B
+close all;
 
 Np = 50;
 
-bAlpha = true;
+bAlpha = false;
 
 ploth = @(k, Xk, Xkmin1, Wk, j) plotPartTrajs(k, Xk, Xkmin1, Wk, j, bAlpha);
 
 figure('Color','white','Position',[292   475  1165   422]);
 
 subplot(1,2,1)
+hold on, grid on;
 bResample = true;
-pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth);
+pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth,[]);
 plot(0:length(X)-1, X, 'Color',cp(2,:),'LineWidth', 2)
 xlabel 'time step', ylabel 'state value', title 'Particle trajectories with resampling'
+ylim([-8,12])
 
 subplot(1,2,2)
+hold on, grid on;
 bResample = false;
-pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth );
+pfFilter(x_0, P_0, Y, f, Q, h, R, Np, bResample, ploth ,[]);
 plot(0:length(X)-1, X, 'Color',cp(2,:),'LineWidth', 2)
 xlabel 'time step', ylabel 'state value', title 'Particle trajectories without resampling'
+ylim([-32,24])
+% fp.savefig('q2b-w')
+% fp.savefig('q2b-nw')
 
 
 %% 3A
@@ -223,8 +236,6 @@ ddt = @(x,dt) conv2(x,[1 -1]/dt,'valid');
 v = ddt(slam.pos,1) + mvnrnd(zeros(2,1), R, length(slam.pos)-1)';
 
 
-%%
-close all;
 
 sigma_v = 2;%4;
 sigma_w = deg2rad(20); %deg2rad(10);
@@ -249,18 +260,32 @@ P_0 = diag([0 0 0 deg2rad(180) deg2rad(5)].^2);
 Xp0 = [ SLAM.genValidRandParticles(N);     % pos
         mvnrnd(x_0(3:5),P_0(3:5,3:5),N)'];
 
+% [xfp, Pfp, Xp, Wp] = pfFilter(x_0,P_0,v,f,Q,h,R,N,bResample,[], @SLAM.isOnRoad);
 [xfp, Pfp, Xp, Wp] = pfFilter(Xp0,P_0,v,f,Q,h,R,N,bResample,[], @SLAM.isOnRoad);
 
 
-% plot SLAM
+close all;
+figure('Color','white','Position',[341  440  578  438]);
+slam.plotmap()
+p1 = plot( slam.pos(1,:)+slam.pos(2,:)*1i, '-*','Color',cp(2,:) , 'DisplayName','True trajectory')
+legend(p1)
+% fp.savefig('q3a')
+
+%% plot SLAM
 % close all;
-figure('Color','white','Position',[593    19  1249   835]);
+% figure('Color','white','Position',[593    19  1249   835]);
+figure('Color','white','Position',[1038    14   809   563]);
 clf;
 slam.plotmap()
 
-pp = scatter( Xp0(1,:), Xp0(2,:) ,50, 'o', 'MarkerFaceAlpha',0.2, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:))
+pp = scatter( Xp0(1,:), Xp0(2,:) ,50, 'o', 'MarkerFaceAlpha',0.2, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:));
 ell_xy = sigmaEllipse2D(xfp(1:2,1),Pfp(1:2,1:2,1),3,50);
 pe = fill(ell_xy(1,:),ell_xy(2,:), cp(5,:),'facealpha',.1);
+
+% title(sprintf('Particle filter - Localization, k=%d',1))
+% fp.savefig(sprintf('q3d-k-%d',1))
+
+save_idx = [1 2 6 13 23 46 57 85 120 138];
 
 pause(3)
 K = length(xfp);
@@ -274,8 +299,14 @@ for k=2:K
     pe.XData = ell_xy(1,:);
     pe.YData = ell_xy(2,:);
     
+    title(sprintf('Particle filter - Localization, k=%d',k))
     drawnow()
     pause(0.1)
+    
+    if any(k==save_idx)
+%         fp.savefig(sprintf('q3c-k-%d',k))
+%         fp.savefig(sprintf('q3d-k-%d',k))
+    end
 end
 
 
@@ -305,8 +336,8 @@ function plotTurnU( X, xf, Pf, Xm, sk, signame, coln)
         p5 = fill(ell_xy(1,:),ell_xy(2,:), cp(coln,:),'facealpha',.1, 'DisplayName',[signame,' 3-sigma']);   %,'edgecolor','none'
     end
 
-    p1 = plot(X(1,:),X(2,:),   '-', 'Color', cp(1,:), 'LineWidth',3, 'DisplayName','True position sequence');
-    p2 = plot(xf(1,:),xf(2,:), '-', 'Color', cp(coln,:), 'LineWidth',3, 'DisplayName',[signame,' position']);
+    p1 = plot(X(1,:),X(2,:),   '-', 'Color', cp(1,:), 'LineWidth',2, 'DisplayName','True position sequence');
+    p2 = plot(xf(1,:),xf(2,:), '-', 'Color', cp(coln,:), 'LineWidth',2, 'DisplayName',[signame,' position']);
     sc1 = scatter(sk(1), sk(2), 100, 'o', 'MarkerFaceAlpha',0.8, 'MarkerFaceColor', cp(4,:), 'MarkerEdgeColor', cp(4,:),'DisplayName','sensor 1 location');
 
     axis manual

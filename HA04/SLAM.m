@@ -19,7 +19,7 @@ classdef SLAM < handle
             plot([8+1.7*i 8+1.8*i 10+1.8*i 10+1.7*i 8+1.7*i])%House 9
 
             axis([0.8 11.2 0.8 9.2])
-            title('Particle filter - Localization','FontSize',20)
+            title('Particle filter - Localization','FontSize',14)
         end
         
         function pos0 = genValidRandParticles(N)

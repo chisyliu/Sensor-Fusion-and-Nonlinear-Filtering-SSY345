@@ -52,10 +52,10 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, pl
             p_map_x = bmap(Xp(1,:,k),Xp(2,:,k));
             Wp(:,k) = Wp(:,k) .* p_map_x;
             Wp(:,k) = Wp(:,k)/sum(Wp(:,k));
-            if sum(p_map_x)/N == 0
-                Xp(:,:,k) = Xp(:,:,k-1);
-                Wp(:,k)   = Wp(:,k-1);
-            end
+            %if sum(p_map_x)/N == 0
+            %    Xp(:,:,k) = Xp(:,:,k-1);
+            %    Wp(:,k)   = Wp(:,k-1);
+            %end
         end
         % resample
         if bResample
