@@ -96,7 +96,7 @@ plotTurnUError( T, xf, xs, X )
 
 
 %% 2A
-
+cp = fp.getColor(1:10);
 
 close all;
 
@@ -171,13 +171,15 @@ title('Comparison KF and PF')
 % fp.savefig('q2a-pos')
 
 
+
+[Xl, KF, pApprox_r] = plotFunc_handle_r (ts, Xpr(:,:,ts), Xpr(:,:,ts-1), Wpr(:,ts)', 0);
+[Xl, KF, pApprox]   = plotFunc_handle   (ts, Xp(:,:,ts),  Xp(:,:,ts-1),  Wp(:,ts)',  0);
+
 ts = 30; %19
 fig = figure('Color','white','Position',[675  549  570  420]);
 hold on, grid on;
 p1 = plot( X([ts,ts]+1), [0,max([pApprox,pApprox_r])*1.2],'--' , 'Color','b','LineWidth', 4, 'DisplayName','PF estimate with resampling')
 p1.Color = [p1.Color 0.2];
-[Xl, KF, pApprox_r] = plotFunc_handle_r (ts, Xpr(:,:,ts), Xpr(:,:,ts-1), Wpr(:,ts)', 0);
-[Xl, KF, pApprox]   = plotFunc_handle   (ts, Xp(:,:,ts),  Xp(:,:,ts-1),  Wp(:,ts)',  0);
 set(fig, 'Name', ['p_',num2str(ts), '_', 'SIR']);
 plot( Xl, pApprox,    'Color',cp(5,:),'LineWidth', 2, 'DisplayName','PF estimate with resampling')
 plot( Xl, pApprox_r,  'Color',cp(3,:),'LineWidth', 2, 'DisplayName','PF estimate without resampling')
