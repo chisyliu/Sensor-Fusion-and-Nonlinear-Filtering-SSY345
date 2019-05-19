@@ -1,4 +1,4 @@
-function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, plotFunc, bmap)
+function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, plotFunc, pmap)
     % PFFILTER Filters measurements Y using the SIS or SIR algorithms and a
     % state-space model.
     %
@@ -31,6 +31,8 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, pl
     Wp = zeros(N,K);
     
     % sample initial particles around prior distribution
+    % if x_0 has only one column, x_0 is the mean of the prior
+    % otherwise x_0 are the initial particles states
     if size(x_0,2) == 1
         Xp(:,:,1) = mvnrnd(x_0,P_0,N)';
     else
@@ -41,22 +43,30 @@ function [xfp, Pfp, Xp, Wp] = pfFilter(x_0, P_0, Y, f, Q, h, R, N, bResample, pl
     
     j = 1:N;
     for k=2:K+1
+        
+        Xp_km1 = Xp(:,:,k-1);
+        Wp_km1 = Wp(:,k-1)';
+        % resample
+        if bResample
+            [Xp_km1, Wp_km1, j] = resampl(Xp_km1, Wp_km1);        
+        end
+            
         % perform a particle filter step for the next measurement
-        [Xp(:,:,k), Wp(:,k)] = pfFilterStep(Xp(:,:,k-1), Wp(:,k-1)', Y(:,k-1), f, Q, h, R);
+        [Xp(:,:,k), Wp(:,k)] = pfFilterStep( Xp_km1, Wp_km1, Y(:,k-1), f, Q, h, R);
         % plot particles using function handle
         if ~isempty(plotFunc)
             plotFunc(k-1, Xp(:,:,k), Xp(:,:,k-1), Wp(:,k)', j);
         end
-        % if handle bmap is given: update p'(y_k|x(i)_k)=p(y_k|x(i)_k)*bmap(y_k|x(i)_k)
-        if ~isempty(bmap)
-            p_map_x = bmap(Xp(1,:,k),Xp(2,:,k));
+        % if handle bmap is given: update p(y_k|x(i)_k,M)=p(y_k|x(i)_k)*bmap(M|x(i)_k)
+        if ~isempty(pmap)
+            p_map_x = pmap(Xp(1,:,k),Xp(2,:,k));
             Wp(:,k) = Wp(:,k) .* p_map_x;
             Wp(:,k) = Wp(:,k)/sum(Wp(:,k));
         end
-        % resample
-        if bResample
-            [Xp(:,:,k), Wp(:,k), j] = resampl(Xp(:,:,k), Wp(:,k)');
-        end
+% % % %         % resample
+% % % %         if bResample
+% % % %             [Xp(:,:,k), Wp(:,k), j] = resampl(Xp(:,:,k), Wp(:,k)');
+% % % %         end
         % estimate mean and covariance given the particles
         xfp(:,k)   = sum( Xp(:,:,k).*Wp(:,k)' ,2 );
         Pfp(:,:,k) = Wp(:,k)'.*(Xp(:,:,k) - xfp(:,k))*(Xp(:,:,k) - xfp(:,k))';
